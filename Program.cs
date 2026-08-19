@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using BookNest_API.Data;
+using BookNest_API.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,9 @@ builder.Services.AddControllers();
 
 builder.Services.AddDbContext<BookNestDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
+builder.Services.AddScoped<IBookService, BookService>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();

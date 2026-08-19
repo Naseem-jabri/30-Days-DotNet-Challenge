@@ -1,6 +1,5 @@
-﻿using BookNest_API.Data;
-using BookNest_API.DTOs;
-using BookNest_API.Models;
+﻿using BookNest_API.DTOs;
+using BookNest_API.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookNest_API.Controllers
@@ -9,35 +8,31 @@ namespace BookNest_API.Controllers
     [Route("api/[controller]")]
     public class BooksController : ControllerBase
     {
-        private readonly BookNestDbContext _db;
+        private readonly IBookService _bookService;
 
-        public BooksController(BookNestDbContext db)
+        public BooksController(IBookService bookService)
         {
-            _db = db;
+            _bookService = bookService;
         }
 
         [HttpPost]
-        public IActionResult CreateBook(CreateBookDto bookDto)
+        public async Task<IActionResult> CreateBook(CreateBookDto bookDto)
         {
-            var book = new book
-            {
-                Title = bookDto.Title,
-                Author = bookDto.Author,
-                Price = bookDto.Price,
-                Category = bookDto.Category,
-                Stock = bookDto.Stock
-            };
+            var book = await _bookService.CreateBook(bookDto);
 
-            _db.Books.Add(book);
-            _db.SaveChanges();
+            if (book == null)
+            {
+                return BadRequest("this book already exists");
+            }
 
             return Ok(book);
         }
 
         [HttpGet]
-        public IActionResult Getbooks()
+        public async Task<IActionResult> Getbooks()
         {
-            var books = _db.Books.ToList();
+            var books = await _bookService.GetAllBooks();
+
             return Ok(books);
         }
     }
