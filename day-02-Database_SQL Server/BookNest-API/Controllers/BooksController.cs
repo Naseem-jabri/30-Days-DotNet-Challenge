@@ -11,7 +11,6 @@ namespace BookNest_API.Controllers
     {
         private readonly BookNestDbContext _db;
 
-        // حقن قاعدة البيانات هنا
         public BooksController(BookNestDbContext db)
         {
             _db = db;
