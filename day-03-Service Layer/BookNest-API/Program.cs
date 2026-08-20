@@ -35,7 +35,7 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<BookNestDbContext>();
-    dbContext.Database.EnsureCreated(); // أو dbContext.Database.Migrate();
+    dbContext.Database.EnsureCreated(); 
 }
 
 app.Run();
