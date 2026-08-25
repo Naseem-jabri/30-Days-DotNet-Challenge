@@ -1,0 +1,111 @@
+﻿using AuthNest_API.Data;
+using AuthNest_API.DTOS;
+using AuthNest_API.Model;
+using AuthNest_API.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
+namespace AuthNest_API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class UsersController : ControllerBase
+    {
+        private readonly UserDbContext _db;
+        private readonly JwtService _jwtService;
+        private readonly IMemoryCache _cache;
+        public UsersController(
+     UserDbContext db,
+     JwtService jwtService, IMemoryCache cache)
+        {
+            _db = db;
+            _jwtService = jwtService;
+            _cache = cache;
+
+        }
+
+        [HttpPost]
+        public IActionResult CreateUser([FromBody] CreateUserDto userDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var user = new User
+            {
+                Username = userDto.Username,
+                Email = userDto.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password)
+            };
+
+            _db.Users.Add(user);
+            _db.SaveChanges();
+            _cache.Remove("users");
+
+            return Ok(new
+            {
+                user.Id,
+                user.Username,
+                user.Email
+            });
+        }
+
+
+        [HttpPost("login")]
+        public IActionResult Login(LoginDto loginDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var user = _db.Users.FirstOrDefault(u => u.Email == loginDto.Email);
+
+            if (user == null)
+            {
+                return Unauthorized("Invalid email or password");
+            }
+
+            var isPasswordValid = BCrypt.Net.BCrypt.Verify(
+                loginDto.Password,
+                user.PasswordHash
+            );
+
+            if (!isPasswordValid)
+            {
+                return Unauthorized("Invalid email or password");
+            }
+
+            var token = _jwtService.GenerateToken(user);
+
+            return Ok(new
+            {
+                message = "Login successful",
+                token = token
+            });
+        }
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult GetUsers()
+        {
+            var users = _cache.Get<List<User>>("users");
+
+            if (users == null)
+            {
+                Console.WriteLine("CACHE MISS ❌ - Getting users from database");
+
+                users = _db.Users.ToList();
+
+                _cache.Set("users", users);
+            }
+            else
+            {
+                Console.WriteLine("CACHE HIT ✅ - Getting users from cache");
+            }
+
+            return Ok(users);
+        }
+    }
+}
