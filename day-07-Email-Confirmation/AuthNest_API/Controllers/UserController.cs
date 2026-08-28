@@ -35,14 +35,7 @@ namespace AuthNest_API.Controllers
                 return BadRequest(ModelState);
             }
 
-            var existingUser = _db.Users
-    .FirstOrDefault(u => u.Email == userDto.Email);
-
-            if (existingUser != null)
-            {
-                return Conflict("Email is already registered.");
-            }
-
+           
             var user = new User
             {
                 Username = userDto.Username,
