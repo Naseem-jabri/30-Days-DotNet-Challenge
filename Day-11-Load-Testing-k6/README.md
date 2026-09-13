@@ -1,4 +1,4 @@
-
+Load testing an ASP.NET Core Web API using k6, JWT authentication, virtual users, latency metrics, throughput, and failure-rate analysi
 
 Testing how the API behaves when it receives a number of requests simultaneously
 
@@ -35,3 +35,12 @@ The value in the middle
 If it is:
 mediana = 568ms
 This means that about 50% of the requests were faster than that and 50% were slower
+//--------------------------------------------------
+GET /api/Users is not the main source of slowness in the current test
+Login is the most expensive part under concurrency
+And the likely reason is that Login contains operations such as:
+Database lookup + BCrypt password verification + JWT generation
+
+The API successfully handled 20 concurrent virtual users with a 0% failure rate. However, 
+response time increased significantly under higher concurrency, with average latency increasing 
+from approximately 246 ms to 731 ms and P95 latency reaching approximately 1.97 second
