@@ -9,7 +9,7 @@ export const options = {
 
 export default function () {
 
-    // 1. Login
+    //Login
     const loginPayload = JSON.stringify({
         email: __ENV.TEST_EMAIL,
         password: __ENV.TEST_PASSWORD,
@@ -33,10 +33,10 @@ export default function () {
         return;
     }
 
-    // 2. Get JWT token
+    //Get JWT token
     const token = loginResponse.json('token');
 
-    // 3. Access protected endpoint
+    //Access protected endpoint
     const usersResponse = http.get(
         'https://localhost:7210/api/Users',
         {
